@@ -25,20 +25,37 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                Text("Habits").font(.largeTitle).font(.title)
-                LazyVGrid(columns: columns, spacing: 20) {
-                    ForEach(habits) { habit in
-                        HabitView(habit: habit)
+                VStack(spacing: 20) {
+                    // Header
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("My Habits")
+                            .font(.system(size: 34, weight: .bold))
+                            .foregroundColor(.primary)
+                        Text("Track your daily progress")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
                     }
-                }
-                .padding()
-            }
-            .toolbar {
-                ToolbarItem(placement:.topBarTrailing) {
-                    Menu {
-                        NavigationLink(destination: AddHabitView()) {
-                            Label("Add Habit", systemImage: "plus")
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal)
+                    
+                    // Stats Overview
+                    StatsOverview(habits: habits)
+                        .padding(.horizontal)
+                    
+                    // Habits Grid
+                    LazyVGrid(columns: columns, spacing: 20) {
+                        ForEach(habits) { habit in
+                            HabitView(habit: habit)
                         }
+                    }
+                    .padding(.horizontal)
+                }
+                .padding(.vertical)
+            }
+            .background(Color(.systemGroupedBackground))
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
                         NavigationLink(destination: HabitStatsView()) {
                             Label("View Stats", systemImage: "chart.bar")
                         }
@@ -47,6 +64,15 @@ struct ContentView: View {
                         }
                     } label: {
                         Image(systemName: "ellipsis.circle")
+                            .font(.system(size: 20, weight: .medium))
+                            .foregroundColor(themeManager.primaryColor)
+                    }
+                }
+                
+                ToolbarItem(placement: .topBarLeading) {
+                    NavigationLink(destination: AddHabitView()) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 20, weight: .medium))
                             .foregroundColor(themeManager.primaryColor)
                     }
                 }

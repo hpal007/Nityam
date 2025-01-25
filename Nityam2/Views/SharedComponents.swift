@@ -107,27 +107,6 @@ struct DayToggleButton: View {
     }
 }
 
-struct ColorSelector: View {
-    @Binding var selectedColor: String
-    
-    var body: some View {
-        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 6), spacing: 10) {
-            ForEach(HabitConstants.colors, id: \.self) { color in
-                Circle()
-                    .fill(Color(color))
-                    .frame(width: 44, height: 44)
-                    .overlay(
-                        Circle()
-                            .stroke(Color.primary, lineWidth: selectedColor == color ? 2 : 0)
-                    )
-                    .onTapGesture {
-                        selectedColor = color
-                    }
-            }
-        }
-    }
-}
-
 struct DurationPicker: View {
     @Binding var duration: TimeInterval
     

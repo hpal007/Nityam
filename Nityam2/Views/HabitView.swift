@@ -16,39 +16,48 @@ struct HabitView: View {
         if habit.type == .positive {
             return habit.isCompleted ? 
                 (themeManager.primaryColor, .white) : 
-                (Color(.tertiarySystemBackground), themeManager.primaryColor)
+                (Color(.secondarySystemGroupedBackground), themeManager.primaryColor)
         } else {
             // Negative habits: theme color when completed (good), red when not (bad)
             return habit.isCompleted ? 
                 (themeManager.primaryColor, .white) : 
-                (Color(.tertiarySystemBackground), .red)
+                (Color(.secondarySystemGroupedBackground), .red)
         }
     }
     
     var body: some View {
-        // Main button that toggles habit completion
         Button(action: toggleCompletion) {
             VStack(spacing: 16) {
-                // Larger icon
-                Image(systemName: habit.iconName)
-                    .font(.system(size: 60))
-                    .foregroundColor(habitColors.foreground)
-                    .frame(height: 60)
+                // Icon with background circle
+                ZStack {
+                    Circle()
+                        .fill(habitColors.background.opacity(0.15))
+                        .frame(width: 70, height: 70)
+                    
+                    Image(systemName: habit.iconName)
+                        .font(.system(size: 32, weight: .medium))
+                        .foregroundColor(habitColors.foreground)
+                        .frame(height: 32)
+                }
+                .padding(.top, 8)
                 
                 VStack(spacing: 8) {
                     Text(habit.name)
-                        .font(.system(size: 16, weight: .medium))
+                        .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(habitColors.foreground)
                         .multilineTextAlignment(.center)
                         .lineLimit(2)
                     
-                    // Stats row
+                    // Stats row with improved layout
                     HStack(spacing: 12) {
-                        // Current streak
-                        Label("\(habit.currentStreak)", systemImage: "flame.fill")
-                            .font(.system(size: 14, weight: .medium))
+                        Label {
+                            Text("\(habit.currentStreak)")
+                                .font(.system(size: 14, weight: .medium))
+                        } icon: {
+                            Image(systemName: "flame.fill")
+                                .foregroundColor(.orange)
+                        }
                         
-                        // Completion percentage
                         if let percentage = calculateCompletionPercentage() {
                             Text("\(Int(percentage))%")
                                 .font(.system(size: 14, weight: .medium))
@@ -58,22 +67,24 @@ struct HabitView: View {
                 }
                 
                 if habit.targetDuration > 0 {
-                    Text("\(Int(habit.targetDuration/60))m")
-                        .font(.system(size: 14))
-                        .foregroundColor(habitColors.foreground)
+                    HStack {
+                        Image(systemName: "clock.fill")
+                            .font(.system(size: 12))
+                        Text("\(Int(habit.targetDuration/60))m")
+                            .font(.system(size: 14))
+                    }
+                    .foregroundColor(habitColors.foreground.opacity(0.8))
+                    .padding(.top, -4)
                 }
             }
             .frame(width: UIScreen.main.bounds.width / 2 - 25, height: UIScreen.main.bounds.width / 2 - 25)
             .background(
                 RoundedRectangle(cornerRadius: 20)
                     .fill(habitColors.background)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 20)
-                    .stroke(Color(.separator), lineWidth: 1)
+                    .shadow(color: Color(.systemGray4).opacity(0.3), radius: 8, x: 0, y: 4)
             )
         }
-        .buttonStyle(PlainButtonStyle()) // This prevents the blue highlight
+        .buttonStyle(HabitButtonStyle())
         .contextMenu {
             NavigationLink(destination: StatsView(habit: habit)) {
                 Label("View Stats", systemImage: "chart.bar.fill")
@@ -117,6 +128,15 @@ struct HabitView: View {
         
         let recentCompletions = habit.completionDates.filter { $0 >= thirtyDaysAgo }
         return Double(recentCompletions.count) / 30.0 * 100
+    }
+}
+
+// Custom button style for smooth animations
+struct HabitButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+            .animation(.spring(response: 0.2, dampingFraction: 0.7), value: configuration.isPressed)
     }
 }
 

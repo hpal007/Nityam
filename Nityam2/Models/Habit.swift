@@ -14,7 +14,7 @@ final class Habit {
     // SF Symbol name for the habit's icon
     var iconName: String
     // Name of the color to be used (maps to system colors)
-    var colorName: String
+//    var colorName: String
     // Duration in minutes (optional, for timed habits)
     var targetDuration: TimeInterval
     // Tracks if the habit is completed for the current day
@@ -34,26 +34,6 @@ final class Habit {
     var frequency: Frequency
     // Days of the week when the habit should be performed
     var taskDays: Set<Weekday>
-    
-    // MARK: - Computed Properties
-    
-    // Converts colorName string to SwiftUI Color
-    var color: Color {
-        switch colorName {
-        case "red": return Color(.systemRed)
-        case "orange": return Color(.systemOrange)
-        case "yellow": return Color(.systemYellow)
-        case "green": return Color(.systemGreen)
-        case "mint": return Color(.systemMint)
-        case "teal": return Color(.systemTeal)
-        case "cyan": return Color(.systemCyan)
-        case "blue": return Color(.systemBlue)
-        case "indigo": return Color(.systemIndigo)
-        case "purple": return Color(.systemPurple)
-        case "pink": return Color(.systemPink)
-        default: return Color(.systemRed)
-        }
-    }
     
     // MARK: - Enums
     
@@ -93,7 +73,7 @@ final class Habit {
     // Creates a new habit with the specified properties
     init(name: String, 
          iconName: String, 
-         colorName: String = "red", 
+//         colorName: String = "red", 
          targetDuration: TimeInterval = 0, 
          type: HabitType = .positive,
          frequency: Frequency = .daily, 
@@ -101,7 +81,7 @@ final class Habit {
         self.id = UUID()
         self.name = name
         self.iconName = iconName
-        self.colorName = colorName
+//        self.colorName = colorName
         self.targetDuration = targetDuration
         self.isCompleted = false
         self.completionDates = []

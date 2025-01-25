@@ -6,7 +6,6 @@ struct AddHabitView: View {
     
     @State private var name = ""
     @State private var iconName = "figure.walk"
-    @State private var colorName = "blue"
     @State private var duration: TimeInterval = 0
     @State private var habitType: Habit.HabitType = .positive
     @State private var frequency: Habit.Frequency = .daily
@@ -74,10 +73,6 @@ struct AddHabitView: View {
                     IconGridView(selectedIcon: $iconName)
                 }
                 
-                Section(header: Text("Color")) {
-                    ColorSelector(selectedColor: $colorName)
-                }
-                
                 if habitType == .positive {
                     Section(header: Text("Duration (Optional)")) {
                         DurationPicker(duration: $duration)
@@ -86,7 +81,6 @@ struct AddHabitView: View {
             }
             .navigationTitle("Add New Habit")
             .navigationBarItems(
-                leading: Button("Cancel") { dismiss() },
                 trailing: Button("Save") {
                     addHabit()
                     dismiss()
@@ -99,7 +93,6 @@ struct AddHabitView: View {
     private func addHabit() {
         let habit = Habit(name: name,
                          iconName: iconName,
-                         colorName: colorName,
                          targetDuration: duration,
                          type: habitType,
                          frequency: frequency,
