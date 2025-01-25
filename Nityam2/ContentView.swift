@@ -10,52 +10,64 @@ import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
-
+    @Query private var habits: [Habit]
+    @State private var showingAddHabit = false
+    @State private var showingThemeSettings = false
+    @State private var showingStats = false
+    @StateObject private var themeManager = ThemeManager.shared
+    
+    // Grid layout
+    let columns = [
+        GridItem(.flexible()),
+        GridItem(.flexible())
+    ]
+    
     var body: some View {
-        NavigationSplitView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
+        NavigationStack {
+            ScrollView {
+                LazyVGrid(columns: columns, spacing: 20) {
+                    ForEach(habits) { habit in
+                        HabitView(habit: habit)
                     }
                 }
-                .onDelete(perform: deleteItems)
+                .padding()
             }
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                }
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
+                ToolbarItem(placement:.topBarTrailing) {
+                    Menu {
+                        Button(action: { showingAddHabit = true }) {
+                            Label("Add Habit", systemImage: "plus")
+                        }
+                        Button(action: { showingStats = true }) {
+                            Label("View Stats", systemImage: "chart.bar")
+                        }
+                        Button(action: { showingThemeSettings = true }) {
+                            Label("Theme Settings", systemImage: "paintpalette")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                            .foregroundColor(themeManager.primaryColor)
                     }
                 }
             }
-        } detail: {
-            Text("Select an item")
-        }
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
+            .sheet(isPresented: $showingAddHabit) {
+                AddHabitView()
+            }
+            .sheet(isPresented: $showingThemeSettings) {
+                ThemeSettingsView()
+            }
+            .sheet(isPresented: $showingStats) {
+                NavigationView {
+                    HabitStatsView()
+                }
             }
         }
+        .background(themeManager.backgroundColor)
+        .preferredColorScheme(.dark)
     }
 }
 
 #Preview {
     ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
+        .modelContainer(for: Habit.self, inMemory: true)
 }
