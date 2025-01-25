@@ -8,9 +8,7 @@ struct HabitView: View {
     let habit: Habit
     // Access to SwiftData storage
     @Environment(\.modelContext) private var modelContext
-    @State private var showingStats = false
     @StateObject private var themeManager = ThemeManager.shared
-    @State private var showingEditSheet = false
     
     // MARK: - View Body
     
@@ -77,26 +75,14 @@ struct HabitView: View {
         }
         .buttonStyle(PlainButtonStyle()) // This prevents the blue highlight
         .contextMenu {
-            Button(action: { showingStats = true }) {
+            NavigationLink(destination: StatsView(habit: habit)) {
                 Label("View Stats", systemImage: "chart.bar.fill")
                     .foregroundColor(.primary)
             }
-            Button(action: { showingEditSheet = true }) {
+            NavigationLink(destination: EditHabitView(habit: habit)) {
                 Label("Edit Habit", systemImage: "pencil")
                     .foregroundColor(.primary)
             }
-        }
-        .sheet(isPresented: $showingStats) {
-            NavigationView {
-                StatsView(habit: habit)
-                    .navigationTitle("Statistics")
-                    .navigationBarItems(trailing: Button("Done") {
-                        showingStats = false
-                    })
-            }
-        }
-        .sheet(isPresented: $showingEditSheet) {
-            EditHabitView(habit: habit)
         }
     }
     
@@ -194,7 +180,6 @@ struct EditHabitView: View {
             }
             .navigationTitle("Edit Habit")
             .navigationBarItems(
-                leading: Button("Cancel") { dismiss() },
                 trailing: Button("Save") {
                     updateHabit()
                     dismiss()

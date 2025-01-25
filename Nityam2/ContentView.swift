@@ -36,30 +36,19 @@ struct ContentView: View {
             .toolbar {
                 ToolbarItem(placement:.topBarTrailing) {
                     Menu {
-                        Button(action: { showingAddHabit = true }) {
+                        NavigationLink(destination: AddHabitView()) {
                             Label("Add Habit", systemImage: "plus")
                         }
-                        Button(action: { showingStats = true }) {
+                        NavigationLink(destination: HabitStatsView()) {
                             Label("View Stats", systemImage: "chart.bar")
                         }
-                        Button(action: { showingThemeSettings = true }) {
+                        NavigationLink(destination: ThemeSettingsView()) {
                             Label("Theme Settings", systemImage: "paintpalette")
                         }
                     } label: {
                         Image(systemName: "ellipsis.circle")
                             .foregroundColor(themeManager.primaryColor)
                     }
-                }
-            }
-            .sheet(isPresented: $showingAddHabit) {
-                AddHabitView()
-            }
-            .sheet(isPresented: $showingThemeSettings) {
-                ThemeSettingsView()
-            }
-            .sheet(isPresented: $showingStats) {
-                NavigationView {
-                    HabitStatsView()
                 }
             }
         }
