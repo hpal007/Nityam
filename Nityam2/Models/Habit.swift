@@ -100,22 +100,33 @@ final class Habit {
         // If no completions, return 0
         guard !completionDates.isEmpty else { return 0 }
         
-        var streak = 1
         let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
         
-        // Sort dates in ascending order
-        let sortedDates = completionDates.sorted()
+        // Sort dates in descending order (most recent first)
+        let sortedDates = completionDates
+            .map { calendar.startOfDay(for: $0) }
+            .sorted(by: >)
+            .uniqued() // Remove duplicate dates
         
-        // Iterate through completion dates to find consecutive days
-        for i in 1..<sortedDates.count {
-            let previous = calendar.startOfDay(for: sortedDates[i-1])
-            let current = calendar.startOfDay(for: sortedDates[i])
+        // If the most recent completion is not from today or yesterday, streak is broken
+        guard let mostRecent = sortedDates.first,
+              let dayDifference = calendar.dateComponents([.day], from: mostRecent, to: today).day,
+              dayDifference <= 1 else {
+            return 0
+        }
+        
+        var streak = 1
+        var previousDate = sortedDates[0]
+        
+        // Count consecutive days from most recent
+        for date in sortedDates.dropFirst() {
+            let daysBetween = calendar.dateComponents([.day], from: date, to: previousDate).day
             
-            // Check if dates are consecutive
-            if calendar.dateComponents([.day], from: previous, to: current).day == 1 {
+            if daysBetween == 1 {
                 streak += 1
+                previousDate = date
             } else {
-                // Break streak if days are not consecutive
                 break
             }
         }
@@ -149,5 +160,13 @@ class DateArrayTransformer: ValueTransformer {
     override func reverseTransformedValue(_ value: Any?) -> Any? {
         guard let data = value as? Data else { return nil }
         return try? JSONDecoder().decode([Date].self, from: data)
+    }
+}
+
+// Extension to remove duplicate dates
+extension Array where Element: Hashable {
+    func uniqued() -> [Element] {
+        var seen = Set<Element>()
+        return filter { seen.insert($0).inserted }
     }
 } 

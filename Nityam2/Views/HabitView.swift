@@ -114,6 +114,8 @@ struct HabitView: View {
                 if let lastDate = habit.completionDates.last,
                    Calendar.current.isDateInToday(lastDate) {
                     habit.completionDates.removeLast()
+                    // Recalculate streak after removing the completion
+                    habit.currentStreak = habit.calculateStreak()
                 }
             }
             

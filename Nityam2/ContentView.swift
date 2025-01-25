@@ -55,17 +55,17 @@ struct ContentView: View {
             .background(Color(.systemGroupedBackground))
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Menu {
-                        NavigationLink(destination: HabitStatsView()) {
-                            Label("View Stats", systemImage: "chart.bar")
-                        }
-                        NavigationLink(destination: ThemeSettingsView()) {
-                            Label("Theme Settings", systemImage: "paintpalette")
-                        }
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
+                    NavigationLink(destination: ThemeSettingsView()) {
+                        Image(systemName: "paintpalette.fill")
                             .font(.system(size: 20, weight: .medium))
                             .foregroundColor(themeManager.primaryColor)
+                            .frame(width: 44, height: 44) // Apple's minimum touch target size
+                            .contentShape(Rectangle()) // Makes entire frame tappable
+                            .background(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(Color(.systemBackground))
+                                    .shadow(color: Color(.systemGray4).opacity(0.3), radius: 4, x: 0, y: 2)
+                            )
                     }
                 }
                 
@@ -74,6 +74,8 @@ struct ContentView: View {
                         Image(systemName: "plus.circle.fill")
                             .font(.system(size: 20, weight: .medium))
                             .foregroundColor(themeManager.primaryColor)
+                            .frame(width: 44, height: 44) // Apple's minimum touch target size
+                            .contentShape(Rectangle()) // Makes entire frame tappable
                     }
                 }
             }
