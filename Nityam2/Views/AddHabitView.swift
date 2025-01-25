@@ -66,65 +66,21 @@ struct AddHabitView: View {
                 
                 if frequency != .daily {
                     Section(header: Text("Task Days")) {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 8) {
-                                ForEach(Habit.Weekday.allCases, id: \.rawValue) { day in
-                                    DayToggleButton(day: day, isSelected: selectedDays.contains(day)) {
-                                        if selectedDays.contains(day) {
-                                            selectedDays.remove(day)
-                                        } else {
-                                            selectedDays.insert(day)
-                                        }
-                                    }
-                                }
-                            }
-                            .padding(.horizontal)
-                        }
+                        WeekdaySelector(selectedDays: $selectedDays)
                     }
                 }
                 
                 Section(header: Text("Icon")) {
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 6), spacing: 10) {
-                        ForEach(icons, id: \.self) { icon in
-                            Button(action: { iconName = icon }) {
-                                Image(systemName: icon)
-                                    .font(.system(size: 24))
-                                    .foregroundColor(iconName == icon ? Color(colorName) : .primary)
-                                    .frame(width: 44, height: 44)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 8)
-                                            .fill(iconName == icon ? Color(colorName).opacity(0.2) : Color.clear)
-                                    )
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                        }
-                    }
-                    .padding(.vertical, 8)
+                    IconGridView(selectedIcon: $iconName)
                 }
                 
                 Section(header: Text("Color")) {
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 6), spacing: 10) {
-                        ForEach(colors, id: \.self) { color in
-                            Circle()
-                                .fill(Color(color))
-                                .frame(width: 44, height: 44)
-                                .overlay(
-                                    Circle()
-                                        .stroke(Color.primary, lineWidth: colorName == color ? 2 : 0)
-                                )
-                                .onTapGesture {
-                                    colorName = color
-                                }
-                        }
-                    }
+                    ColorSelector(selectedColor: $colorName)
                 }
                 
                 if habitType == .positive {
                     Section(header: Text("Duration (Optional)")) {
-                        Stepper("Duration: \(Int(duration/60)) minutes", 
-                               value: $duration, 
-                               in: 0...120*60, 
-                               step: 5*60)
+                        DurationPicker(duration: $duration)
                     }
                 }
             }
@@ -152,22 +108,3 @@ struct AddHabitView: View {
         try? modelContext.save()
     }
 }
-
-// Helper view for day selection
-struct DayToggleButton: View {
-    let day: Habit.Weekday
-    let isSelected: Bool
-    let action: () -> Void
-    @StateObject private var themeManager = ThemeManager.shared
-    
-    var body: some View {
-        Button(action: action) {
-            Text(day.shortName)
-                .font(.system(size: 14, weight: .medium))
-                .foregroundColor(isSelected ? .white : .primary)
-                .frame(width: 40, height: 40)
-                .background(isSelected ? themeManager.primaryColor : Color(.systemGray5))
-                .clipShape(Circle())
-        }
-    }
-} 

@@ -186,8 +186,10 @@ struct EditHabitView: View {
                     }
                 }
                 
-                Section(header: Text("Duration (Optional)")) {
-                    DurationPicker(duration: $duration)
+                if habitType == .positive {
+                    Section(header: Text("Duration (Optional)")) {
+                        DurationPicker(duration: $duration)
+                    }
                 }
             }
             .navigationTitle("Edit Habit")
@@ -213,103 +215,3 @@ struct EditHabitView: View {
         try? modelContext.save()
     }
 }
-
-// Helper view for icon selection
-struct IconGridView: View {
-    @Binding var selectedIcon: String
-    @StateObject private var themeManager = ThemeManager.shared
-    
-    let icons = [
-        // Health & Fitness
-        "figure.walk", "figure.run", "figure.hiking", "figure.yoga", 
-        "figure.pool.swim", "figure.dance", "dumbbell.fill", "heart.fill",
-        
-        // Mindfulness & Wellness
-        "brain.head.profile", "bed.double.fill", "zzz", "lungs.fill",
-        "leaf.fill", "drop.fill", "pills.fill", "cross.case.fill",
-        
-        // Productivity
-        "book.fill", "text.book.closed.fill", "doc.fill", "pencil",
-        "keyboard", "desktopcomputer", "laptopcomputer", "mail.fill",
-        
-        // Lifestyle
-        "house.fill", "cart.fill", "creditcard.fill", "dollarsign.circle.fill",
-        "clock.fill", "alarm.fill", "calendar", "gift.fill"
-    ]
-    
-    var body: some View {
-        LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 6), spacing: 10) {
-            ForEach(icons, id: \.self) { icon in
-                Image(systemName: icon)
-                    .font(.system(size: 24))
-                    .foregroundColor(selectedIcon == icon ? themeManager.primaryColor : .primary)
-                    .frame(width: 44, height: 44)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(selectedIcon == icon ? themeManager.primaryColor.opacity(0.2) : Color.clear)
-                    )
-                    .onTapGesture {
-                        selectedIcon = icon
-                    }
-            }
-        }
-        .padding(.vertical, 8)
-    }
-}
-
-// Add WeekdaySelector if it's missing
-struct WeekdaySelector: View {
-    @Binding var selectedDays: Set<Habit.Weekday>
-    
-    var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(Habit.Weekday.allCases, id: \.self) { day in
-                    Toggle(isOn: Binding(
-                        get: { selectedDays.contains(day) },
-                        set: { isSelected in
-                            if isSelected {
-                                selectedDays.insert(day)
-                            } else {
-                                selectedDays.remove(day)
-                            }
-                        }
-                    )) {
-                        Text(day.shortName)
-                    }
-                    .toggleStyle(DayToggleStyle())
-                }
-            }
-            .padding(.horizontal)
-        }
-    }
-}
-
-struct DayToggleStyle: ToggleStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        Button(action: { configuration.isOn.toggle() }) {
-            configuration.label
-                .font(.system(size: 14, weight: .medium))
-                .foregroundColor(configuration.isOn ? .white : .primary)
-                .frame(width: 40, height: 40)
-                .background(configuration.isOn ? Color.blue : Color(.systemGray5))
-                .clipShape(Circle())
-        }
-    }
-}
-
-// Add DurationPicker if it's missing
-struct DurationPicker: View {
-    @Binding var duration: TimeInterval
-    
-    var body: some View {
-        Picker("Duration", selection: $duration) {
-            Text("None").tag(TimeInterval(0))
-            Text("15 min").tag(TimeInterval(15 * 60))
-            Text("30 min").tag(TimeInterval(30 * 60))
-            Text("1 hour").tag(TimeInterval(60 * 60))
-            Text("2 hours").tag(TimeInterval(120 * 60))
-        }
-    }
-} 
-

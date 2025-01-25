@@ -63,8 +63,6 @@ struct ContentView: View {
                 }
             }
         }
-//        .background(themeManager.backgroundColor)
-//        .preferredColorScheme(.dark)
     }
 }
 
