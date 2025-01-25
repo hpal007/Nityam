@@ -20,6 +20,7 @@ final class Habit {
     // Tracks if the habit is completed for the current day
     var isCompleted: Bool
     // Array of dates when the habit was completed
+    @Attribute(.externalStorage)
     var completionDates: [Date]
     // Current streak of consecutive days completed
     var currentStreak: Int
@@ -122,10 +123,13 @@ final class Habit {
         var streak = 1
         let calendar = Calendar.current
         
+        // Sort dates in ascending order
+        let sortedDates = completionDates.sorted()
+        
         // Iterate through completion dates to find consecutive days
-        for i in 1..<completionDates.count {
-            let previous = calendar.startOfDay(for: completionDates[i-1])
-            let current = calendar.startOfDay(for: completionDates[i])
+        for i in 1..<sortedDates.count {
+            let previous = calendar.startOfDay(for: sortedDates[i-1])
+            let current = calendar.startOfDay(for: sortedDates[i])
             
             // Check if dates are consecutive
             if calendar.dateComponents([.day], from: previous, to: current).day == 1 {
@@ -137,5 +141,33 @@ final class Habit {
         }
         
         return streak
+    }
+}
+
+// MARK: - Date Array Transformer
+class DateArrayTransformer: ValueTransformer {
+    static let name = NSValueTransformerName("DateArrayTransformer")
+    
+    static func register() {
+        let transformer = DateArrayTransformer()
+        ValueTransformer.setValueTransformer(transformer, forName: name)
+    }
+    
+    override static func transformedValueClass() -> AnyClass {
+        NSArray.self
+    }
+    
+    override static func allowsReverseTransformation() -> Bool {
+        true
+    }
+    
+    override func transformedValue(_ value: Any?) -> Any? {
+        guard let dates = value as? [Date] else { return nil }
+        return try? JSONEncoder().encode(dates)
+    }
+    
+    override func reverseTransformedValue(_ value: Any?) -> Any? {
+        guard let data = value as? Data else { return nil }
+        return try? JSONDecoder().decode([Date].self, from: data)
     }
 } 

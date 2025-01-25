@@ -158,6 +158,7 @@ struct DayToggleButton: View {
     let day: Habit.Weekday
     let isSelected: Bool
     let action: () -> Void
+    @StateObject private var themeManager = ThemeManager.shared
     
     var body: some View {
         Button(action: action) {
@@ -165,7 +166,7 @@ struct DayToggleButton: View {
                 .font(.system(size: 14, weight: .medium))
                 .foregroundColor(isSelected ? .white : .primary)
                 .frame(width: 40, height: 40)
-                .background(isSelected ? Color.blue : Color(.systemGray5))
+                .background(isSelected ? themeManager.primaryColor : Color(.systemGray5))
                 .clipShape(Circle())
         }
     }

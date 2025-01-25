@@ -25,6 +25,7 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
+                Text("Habits").font(.largeTitle).font(.title)
                 LazyVGrid(columns: columns, spacing: 20) {
                     ForEach(habits) { habit in
                         HabitView(habit: habit)
@@ -62,8 +63,8 @@ struct ContentView: View {
                 }
             }
         }
-        .background(themeManager.backgroundColor)
-        .preferredColorScheme(.dark)
+//        .background(themeManager.backgroundColor)
+//        .preferredColorScheme(.dark)
     }
 }
 
