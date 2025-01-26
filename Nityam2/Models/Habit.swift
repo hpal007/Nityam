@@ -22,7 +22,8 @@ final class Habit {
     // MARK: - Scheduling
     var type: HabitType           // Positive (to build) or negative (to break) habit
     var frequency: Frequency      // How often the habit should be performed
-    var taskDays: Set<Weekday>   // Specific days when the habit should be performed
+    var taskDays: Set<Weekday>   // Specific days when the habit should be performed (for weekly)
+    var customSchedule: CustomSchedule? // Advanced scheduling options for custom frequency
     
     // MARK: - Enums
     
@@ -36,7 +37,20 @@ final class Habit {
     enum Frequency: String, Codable {
         case daily   // Every day
         case weekly  // Specific days each week
-        case custom  // Custom schedule
+        case custom  // Custom schedule (monthly, yearly patterns)
+    }
+    
+    // Custom scheduling options
+    enum CustomScheduleType: String, Codable {
+        case daysOfMonth    // Specific days of the month (1-31)
+        case intervalDays   // Every X days
+    }
+    
+    // Structure to hold custom scheduling information
+    struct CustomSchedule: Codable {
+        var type: CustomScheduleType
+        var values: [Int]    // Days of month (1-31)
+        var interval: Int?   // For intervalDays type
     }
     
     // Represents days of the week for scheduling
@@ -61,16 +75,15 @@ final class Habit {
     
     // Creates a new habit with the specified properties
     init(name: String, 
-         iconName: String, 
-//         colorName: String = "red", 
+         iconName: String,
          targetDuration: TimeInterval = 0, 
          type: HabitType = .positive,
          frequency: Frequency = .daily, 
-         taskDays: Set<Weekday> = Set(Weekday.allCases)) {
+         taskDays: Set<Weekday> = Set(Weekday.allCases),
+         customSchedule: CustomSchedule? = nil) {
         self.id = UUID()
         self.name = name
         self.iconName = iconName
-//        self.colorName = colorName
         self.targetDuration = targetDuration
         self.isCompleted = false
         self.completionDates = []
@@ -79,12 +92,42 @@ final class Habit {
         self.type = type
         self.frequency = frequency
         self.taskDays = taskDays
+        self.customSchedule = customSchedule
     }
     
     // MARK: - Methods
     
-    /// Calculates the current streak of consecutive days
-    /// Returns: Number of consecutive days the habit was completed
+    /// Checks if the given date is a task day for this habit
+    func isTaskDay(for date: Date = Date()) -> Bool {
+        let calendar = Calendar.current
+        
+        switch frequency {
+        case .daily:
+            return true
+            
+        case .weekly:
+            let weekday = Weekday(rawValue: calendar.component(.weekday, from: date)) ?? .sunday
+            return taskDays.contains(weekday)
+            
+        case .custom:
+            guard let schedule = customSchedule else { return false }
+            
+            switch schedule.type {
+            case .daysOfMonth:
+                let dayOfMonth = calendar.component(.day, from: date)
+                return schedule.values.contains(dayOfMonth)
+                
+            case .intervalDays:
+                guard let interval = schedule.interval else { return false }
+                let startOfDay = calendar.startOfDay(for: date)
+                let daysSinceEpoch = calendar.dateComponents([.day], from: Date(timeIntervalSince1970: 0), to: startOfDay).day ?? 0
+                return daysSinceEpoch % interval == 0
+            }
+        }
+    }
+    
+    /// Calculates the current streak of consecutive task days
+    /// Returns: Number of consecutive task days the habit was completed
     func calculateStreak() -> Int {
         // If no completions, return 0
         guard !completionDates.isEmpty else { return 0 }
@@ -98,23 +141,33 @@ final class Habit {
             .sorted(by: >)
             .uniqued() // Remove duplicate dates
         
-        // If the most recent completion is not from today or yesterday, streak is broken
+        // For the streak to be active, the last completion must be on the most recent task day
+        var currentDate = today
+        while !isTaskDay(for: currentDate) {
+            guard let previousDay = calendar.date(byAdding: .day, value: -1, to: currentDate) else { break }
+            currentDate = previousDay
+        }
+        
         guard let mostRecent = sortedDates.first,
-              let dayDifference = calendar.dateComponents([.day], from: mostRecent, to: today).day,
-              dayDifference <= 1 else {
+              mostRecent >= currentDate else {
             return 0
         }
         
         var streak = 1
-        var previousDate = sortedDates[0]
+        var dateToCheck = mostRecent
         
-        // Count consecutive days from most recent
-        for date in sortedDates.dropFirst() {
-            let daysBetween = calendar.dateComponents([.day], from: date, to: previousDate).day
+        // Count back through dates, only counting task days
+        while let previousDate = calendar.date(byAdding: .day, value: -1, to: dateToCheck) {
+            // If this is not a task day, skip to next date without breaking streak
+            if !isTaskDay(for: previousDate) {
+                dateToCheck = previousDate
+                continue
+            }
             
-            if daysBetween == 1 {
+            // Check if this task day was completed
+            if sortedDates.contains(previousDate) {
                 streak += 1
-                previousDate = date
+                dateToCheck = previousDate
             } else {
                 break
             }

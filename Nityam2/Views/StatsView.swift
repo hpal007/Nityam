@@ -64,23 +64,46 @@ struct StatsView: View {
     
     private func updateCachedData() {
         let today = Date()
+        let calendar = Calendar.current
+        
+        // For last 30 days, only show completion status for task days
         cachedLast30DaysData = (0..<30).map { daysAgo -> CompletionData in
             let date = calendar.date(byAdding: .day, value: -daysAgo, to: today)!
-            let wasCompleted = habit.completionDates.contains { calendar.isDate($0, inSameDayAs: date) }
+            // Only check completion if it was a task day
+            let wasCompleted = habit.isTaskDay(for: date) && 
+                habit.completionDates.contains { calendar.isDate($0, inSameDayAs: date) }
             return CompletionData(id: date, date: date, completed: wasCompleted)
         }.reversed()
         
+        // Initialize stats for each weekday
         var stats: [Int: (total: Int, completed: Int)] = [:]
         for weekday in 1...7 {
             stats[weekday] = (0, 0)
         }
         
-        for date in habit.completionDates {
+        // Calculate completion stats for the last 90 days
+        let startDate = calendar.date(byAdding: .day, value: -90, to: today)!
+        var date = startDate
+        
+        while date <= today {
             let weekday = calendar.component(.weekday, from: date)
-            let current = stats[weekday]!
-            stats[weekday] = (current.total + 1, current.completed + 1)
+            
+            // Only count days that were task days based on frequency
+            if habit.isTaskDay(for: date) {
+                let wasCompleted = habit.completionDates.contains { 
+                    calendar.isDate($0, inSameDayAs: date)
+                }
+                let current = stats[weekday]!
+                stats[weekday] = (
+                    current.total + 1,
+                    current.completed + (wasCompleted ? 1 : 0)
+                )
+            }
+            
+            date = calendar.date(byAdding: .day, value: 1, to: date)!
         }
         
+        // Convert stats to percentages
         cachedWeekdayStats = stats.sorted { $0.key < $1.key }.map { weekday, stat in
             let percentage = stat.total > 0 ? Double(stat.completed) / Double(stat.total) * 100 : 0
             let dayName = calendar.shortWeekdaySymbols[weekday - 1]

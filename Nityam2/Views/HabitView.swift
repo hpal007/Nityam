@@ -14,6 +14,11 @@ struct HabitView: View {
     // MARK: - View Body
     
     private var habitColors: (background: Color, foreground: Color) {
+        // If not a task day, show muted appearance
+        guard habit.isTaskDay() else {
+            return (Color(.tertiarySystemGroupedBackground), Color(.tertiaryLabel))
+        }
+        
         if habit.type == .positive {
             return habit.isCompleted ? 
                 (themeManager.primaryColor, .white) : 
@@ -50,33 +55,34 @@ struct HabitView: View {
                         .multilineTextAlignment(.center)
                         .lineLimit(2)
                     
-                    // Stats row with improved layout
-                    HStack(spacing: 12) {
-                        Label {
-                            Text("\(habit.currentStreak)")
-                                .font(.system(size: 14, weight: .medium))
-                        } icon: {
-                            Image(systemName: "flame.fill")
-                                .foregroundColor(.orange)
+                    if habit.isTaskDay() {
+                        // Stats row with improved layout
+                        HStack(spacing: 12) {
+                            Label {
+                                Text("\(habit.currentStreak)")
+                                    .font(.system(size: 14, weight: .medium))
+                            } icon: {
+                                Image(systemName: "flame.fill")
+                                    .foregroundColor(.orange)
+                            }
+                            Label {
+                                Text("\(habit.bestStreak)")
+                                    .font(.system(size: 14, weight: .medium))
+                            } icon: {
+                                Image(systemName: "star.fill")
+                                    .foregroundColor(.orange)
+                            }
                         }
-                        Label {
-                            Text("\(habit.bestStreak)")
-                                .font(.system(size: 14, weight: .medium))
-                        } icon: {
-                            Image(systemName: "star.fill")
-                                .foregroundColor(.orange)
-                        }
-
-//
-//                        if let percentage = calculateCompletionPercentage() {
-//                            Text("\(Int(percentage))%")
-//                                .font(.system(size: 14, weight: .medium))
-//                        }
+                        .foregroundColor(habitColors.foreground)
+                    } else {
+                        // Show next task day
+                        Text(getNextTaskDayText())
+                            .font(.system(size: 14))
+                            .foregroundColor(habitColors.foreground)
                     }
-                    .foregroundColor(habitColors.foreground)
                 }
                 
-                if habit.targetDuration > 0 {
+                if habit.targetDuration > 0 && habit.isTaskDay() {
                     HStack {
                         Image(systemName: "clock.fill")
                             .font(.system(size: 12))
@@ -129,6 +135,9 @@ struct HabitView: View {
     
     /// Toggles the completion status of the habit
     private func toggleCompletion() {
+        // Only allow toggling completion on task days
+        guard habit.isTaskDay() else { return }
+        
         withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
             habit.isCompleted.toggle()
             
@@ -143,22 +152,51 @@ struct HabitView: View {
                    Calendar.current.isDateInToday(lastDate) {
                     habit.completionDates.removeLast()
                     habit.currentStreak = habit.calculateStreak()
-                    // Update best streak here as well, in case removing today's completion
-                    // affects historical streaks
-                    habit.bestStreak = habit.bestStreak - 1;
+                    habit.bestStreak = habit.calculateStreak()
                 }
             }
             
             try? modelContext.save()
         }
     }
-//    private func calculateCompletionPercentage() -> Double? {
-//        let calendar = Calendar.current
-//        let thirtyDaysAgo = calendar.date(byAdding: .day, value: -30, to: Date())!
-//        
-//        let recentCompletions = habit.completionDates.filter { $0 >= thirtyDaysAgo }
-//        return Double(recentCompletions.count) / 30.0 * 100
-//    }
+    
+    private func getNextTaskDayText() -> String {
+        let calendar = Calendar.current
+        var date = calendar.date(byAdding: .day, value: 1, to: Date()) ?? Date()
+        var daysToNext = 1
+        
+        // Look ahead up to 31 days to find the next task day
+        while daysToNext <= 31 {
+            if habit.isTaskDay(for: date) {
+                switch habit.frequency {
+                case .daily, .weekly:
+                    let weekday = calendar.component(.weekday, from: date)
+                    if let day = Habit.Weekday(rawValue: weekday) {
+                        return "Next: \(day.shortName)"
+                    }
+                case .custom:
+                    if let customSchedule = habit.customSchedule {
+                        switch customSchedule.type {
+                        case .daysOfMonth:
+                            let day = calendar.component(.day, from: date)
+                            let month = calendar.component(.month, from: date)
+                            let monthName = calendar.monthSymbols[month - 1]
+                            return "Next: \(day) \(monthName)"
+                        case .intervalDays:
+                            let formatter = DateFormatter()
+                            formatter.dateFormat = "d MMM"
+                            return "Next: \(formatter.string(from: date))"
+                        }
+                    }
+                }
+                break
+            }
+            date = calendar.date(byAdding: .day, value: 1, to: date) ?? date
+            daysToNext += 1
+        }
+        
+        return "Not scheduled"
+    }
 }
 
 // Custom button style for smooth animations
@@ -170,86 +208,20 @@ struct HabitButtonStyle: ButtonStyle {
     }
 }
 
+// New AddHabitView
+struct AddHabitView: View {
+    var body: some View {
+        HabitFormView()
+    }
+}
+
 // New EditHabitView
 struct EditHabitView: View {
-    @Environment(\.dismiss) private var dismiss
-    @Environment(\.modelContext) private var modelContext
-    @StateObject private var themeManager = ThemeManager.shared
-    
     let habit: Habit
-    @State private var name: String
-    @State private var iconName: String
-    @State private var duration: TimeInterval
-    @State private var habitType: Habit.HabitType
-    @State private var frequency: Habit.Frequency
-    @State private var selectedDays: Set<Habit.Weekday>
-    
-    init(habit: Habit) {
-        self.habit = habit
-        _name = State(initialValue: habit.name)
-        _iconName = State(initialValue: habit.iconName)
-        _duration = State(initialValue: habit.targetDuration)
-        _habitType = State(initialValue: habit.type)
-        _frequency = State(initialValue: habit.frequency)
-        _selectedDays = State(initialValue: habit.taskDays)
-    }
     
     var body: some View {
-        NavigationView {
-            Form {
-                Section(header: Text("Basic Info")) {
-                    TextField("Habit Name", text: $name)
-                    Picker("Type", selection: $habitType) {
-                        Text("Positive Habit").tag(Habit.HabitType.positive)
-                        Text("Negative Habit").tag(Habit.HabitType.negative)
-                    }
-                    
-                    Picker("Frequency", selection: $frequency) {
-                        Text("Daily").tag(Habit.Frequency.daily)
-                        Text("Weekly").tag(Habit.Frequency.weekly)
-                        Text("Custom").tag(Habit.Frequency.custom)
-                    }
-                }
-                
-                // Reuse icon grid from AddHabitView
-                Section(header: Text("Icon")) {
-                    IconGridView(selectedIcon: $iconName)
-                }
-                
-                if frequency != .daily {
-                    Section(header: Text("Task Days")) {
-                        WeekdaySelector(selectedDays: $selectedDays)
-                    }
-                }
-                
-                if habitType == .positive {
-                    Section(header: Text("Duration (Optional)")) {
-                        DurationPicker(duration: $duration)
-                    }
-                }
-            }
-            .navigationTitle("Edit Habit")
-            .navigationBarItems(
-                trailing: Button("Save") {
-                    updateHabit()
-                    dismiss()
-                }
-                .disabled(name.isEmpty)
-            )
-        }
+        HabitFormView(habit: habit)
     }
-    
-    private func updateHabit() {
-        habit.name = name
-        habit.iconName = iconName
-        habit.targetDuration = duration
-        habit.type = habitType
-        habit.frequency = frequency
-        habit.taskDays = selectedDays
-        
-        try? modelContext.save()
-    }
-    
 }
 
 // ... existing code ...
