@@ -114,16 +114,16 @@ struct HabitView: View {
                 if let lastDate = habit.completionDates.last,
                    Calendar.current.isDateInToday(lastDate) {
                     habit.completionDates.removeLast()
-                    // Recalculate streak after removing the completion
                     habit.currentStreak = habit.calculateStreak()
+                    // Update best streak here as well, in case removing today's completion
+                    // affects historical streaks
+                    habit.bestStreak = habit.bestStreak - 1;
                 }
             }
             
-            // Save changes to persistent storage
             try? modelContext.save()
         }
     }
-    
     private func calculateCompletionPercentage() -> Double? {
         let calendar = Calendar.current
         let thirtyDaysAgo = calendar.date(byAdding: .day, value: -30, to: Date())!
@@ -221,4 +221,18 @@ struct EditHabitView: View {
         
         try? modelContext.save()
     }
+}
+
+// ... existing code ...
+
+#Preview {
+    HabitView(habit: Habit(
+        name: "Exercise",
+        iconName: "figure.run",
+        targetDuration: 1800,  // 30 minutes
+        type: .positive,
+        frequency: .daily,
+        taskDays: Set(Habit.Weekday.allCases)
+    ))
+    .modelContainer(for: Habit.self)
 }
