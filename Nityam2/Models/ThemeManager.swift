@@ -1,7 +1,10 @@
 import SwiftUI
 
-/// Manages app-wide theme settings
+// MARK: - Theme Management
+/// Manages app-wide theme settings using UserDefaults for persistence
 class ThemeManager: ObservableObject {
+    // MARK: - Persisted Properties
+    // These properties are automatically saved to UserDefaults when changed
     @Published var primaryColor: Color {
         didSet {
             UserDefaults.standard.setColor(primaryColor, forKey: "primaryColor")
@@ -14,8 +17,10 @@ class ThemeManager: ObservableObject {
         }
     }
     
+    // MARK: - Singleton Instance
     static let shared = ThemeManager()
     
+    // MARK: - Theme Presets
     let themes: [(name: String, primary: Color, background: Color)] = [
         ("Warm Sand", Color("#FCE7C8"), Color.white),
         ("Sage", Color("#B1C29E"), Color.white),
@@ -23,7 +28,9 @@ class ThemeManager: ObservableObject {
         ("Sunset", Color("#F0A04B"), Color.white)
     ]
     
+    // MARK: - Initialization
     private init() {
+        // Load saved colors from UserDefaults or use default theme
         let savedColor = UserDefaults.standard.color(forKey: "primaryColor")
         let savedBackground = UserDefaults.standard.color(forKey: "backgroundColor")
         
@@ -36,6 +43,7 @@ class ThemeManager: ObservableObject {
         }
     }
     
+    // MARK: - Theme Application
     func applyTheme(primary: Color, background: Color) {
         withAnimation {
             primaryColor = primary
@@ -44,7 +52,8 @@ class ThemeManager: ObservableObject {
     }
 }
 
-// Helper extension for Color persistence
+// MARK: - UserDefaults Color Extension
+/// Enables storing SwiftUI Color values in UserDefaults
 extension UserDefaults {
     func setColor(_ color: Color, forKey key: String) {
         let uiColor = UIColor(color)

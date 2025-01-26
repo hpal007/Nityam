@@ -2,38 +2,27 @@ import Foundation
 import SwiftData
 import SwiftUI
 
-// @Model is a SwiftData macro that marks this class as a persistent model
-@Model
+// MARK: - SwiftData Model
+@Model // This macro marks the class for SwiftData persistence
 final class Habit {
-    // MARK: - Properties
+    // MARK: - Core Properties
+    var id: UUID                    // Unique identifier for the habit
+    var name: String                // Display name of the habit
+    var iconName: String            // SF Symbol name for visual representation
+    var targetDuration: TimeInterval // Optional duration in minutes for timed habits
+    var isCompleted: Bool           // Tracks today's completion status
     
-    // Unique identifier for each habit
-    var id: UUID
-    // Name of the habit (e.g., "Walk the dog")
-    var name: String
-    // SF Symbol name for the habit's icon
-    var iconName: String
-    // Name of the color to be used (maps to system colors)
-//    var colorName: String
-    // Duration in minutes (optional, for timed habits)
-    var targetDuration: TimeInterval
-    // Tracks if the habit is completed for the current day
-    var isCompleted: Bool
-    // Array of dates when the habit was completed
-    @Attribute(.externalStorage)
-    var completionDates: [Date]
-    // Current streak of consecutive days completed
-    var currentStreak: Int
-    // Best streak ever achieved
-    var bestStreak: Int
-    // Last date when the habit was completed
-    var lastCompletedDate: Date?
-    // Type of habit (positive or negative)
-    var type: HabitType
-    // How often the habit should be performed
-    var frequency: Frequency
-    // Days of the week when the habit should be performed
-    var taskDays: Set<Weekday>
+    // MARK: - Progress Tracking
+    @Attribute(.externalStorage)    // Stores large arrays externally for better performance
+    var completionDates: [Date]     // History of all completion dates
+    var currentStreak: Int          // Current consecutive days streak
+    var bestStreak: Int            // Highest streak ever achieved
+    var lastCompletedDate: Date?   // Most recent completion date
+    
+    // MARK: - Scheduling
+    var type: HabitType           // Positive (to build) or negative (to break) habit
+    var frequency: Frequency      // How often the habit should be performed
+    var taskDays: Set<Weekday>   // Specific days when the habit should be performed
     
     // MARK: - Enums
     

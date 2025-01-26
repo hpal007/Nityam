@@ -9,6 +9,7 @@ struct HabitView: View {
     // Access to SwiftData storage
     @Environment(\.modelContext) private var modelContext
     @StateObject private var themeManager = ThemeManager.shared
+    @State private var showingDeleteAlert = false
     
     // MARK: - View Body
     
@@ -24,6 +25,7 @@ struct HabitView: View {
                 (Color(.secondarySystemGroupedBackground), .red)
         }
     }
+    
     
     var body: some View {
         Button(action: toggleCompletion) {
@@ -102,10 +104,28 @@ struct HabitView: View {
                 Label("Edit Habit", systemImage: "pencil")
                     .foregroundColor(.primary)
             }
+            Divider()
+            Button(role: .destructive, action: { showingDeleteAlert = true }) {
+                Label("Delete Habit", systemImage: "trash.fill")
+            }
+        }
+        .alert("Delete Habit", isPresented: $showingDeleteAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete", role: .destructive, action: deleteHabit)
+        } message: {
+            Text("Are you sure you want to delete '\(habit.name)'? This action cannot be undone.")
         }
     }
     
     // MARK: - Methods
+    
+    /// Deletes the habit from storage
+    private func deleteHabit() {
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+            modelContext.delete(habit)
+            try? modelContext.save()
+        }
+    }
     
     /// Toggles the completion status of the habit
     private func toggleCompletion() {
@@ -229,6 +249,7 @@ struct EditHabitView: View {
         
         try? modelContext.save()
     }
+    
 }
 
 // ... existing code ...

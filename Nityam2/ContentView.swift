@@ -79,11 +79,6 @@ struct ContentView: View {
                             .foregroundColor(themeManager.primaryColor)
                             .frame(width: 44, height: 44)
                             .contentShape(Rectangle())
-                            .background(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .fill(Color(.systemBackground))
-                                    .shadow(color: Color(.systemGray4).opacity(0.3), radius: 4, x: 0, y: 2)
-                            )
                     }
                 }
                 
