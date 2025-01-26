@@ -28,7 +28,7 @@ struct ContentView: View {
                 VStack(spacing: 20) {
                     // Header
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("My Habits")
+                        Text("Habits")
                             .font(.system(size: 34, weight: .bold))
                             .foregroundColor(.primary)
                         Text("Track your daily progress")
@@ -55,12 +55,30 @@ struct ContentView: View {
             .background(Color(.systemGroupedBackground))
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    NavigationLink(destination: ThemeSettingsView()) {
+                    Menu {
+                        ForEach(themeManager.themes, id: \.name) { theme in
+                            Button(action: {
+                                withAnimation(.spring(response: 0.3)) {
+                                    themeManager.applyTheme(primary: theme.primary, background: theme.background)
+                                }
+                            }) {
+                                HStack {
+                                    Circle()
+                                        .fill(theme.primary)
+                                        .frame(width: 20, height: 20)
+                                    Text(theme.name)
+                                    if theme.primary == themeManager.primaryColor {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                        }
+                    } label: {
                         Image(systemName: "paintpalette.fill")
                             .font(.system(size: 20, weight: .medium))
                             .foregroundColor(themeManager.primaryColor)
-                            .frame(width: 44, height: 44) // Apple's minimum touch target size
-                            .contentShape(Rectangle()) // Makes entire frame tappable
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
                             .background(
                                 RoundedRectangle(cornerRadius: 10)
                                     .fill(Color(.systemBackground))
@@ -74,8 +92,8 @@ struct ContentView: View {
                         Image(systemName: "plus.circle.fill")
                             .font(.system(size: 20, weight: .medium))
                             .foregroundColor(themeManager.primaryColor)
-                            .frame(width: 44, height: 44) // Apple's minimum touch target size
-                            .contentShape(Rectangle()) // Makes entire frame tappable
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
                     }
                 }
             }

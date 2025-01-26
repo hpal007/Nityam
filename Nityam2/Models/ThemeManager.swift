@@ -16,71 +16,14 @@ class ThemeManager: ObservableObject {
     
     static let shared = ThemeManager()
     
-    // Curated themes with carefully selected color combinations for both light and dark modes
     let themes: [(name: String, primary: Color, background: Color)] = [
-        ("Modern Blue", 
-         Color(uiColor: UIColor { traitCollection in
-             traitCollection.userInterfaceStyle == .dark ?
-             UIColor(red: 0.40, green: 0.60, blue: 1.0, alpha: 1.0) :
-             UIColor(red: 0.20, green: 0.47, blue: 0.91, alpha: 1.0)
-         }),
-         Color(uiColor: UIColor { traitCollection in
-             traitCollection.userInterfaceStyle == .dark ?
-             UIColor(red: 0.11, green: 0.11, blue: 0.12, alpha: 1.0) :
-             UIColor(red: 0.98, green: 0.98, blue: 0.98, alpha: 1.0)
-         })),
-        
-        ("Mint Fresh", 
-         Color(uiColor: UIColor { traitCollection in
-             traitCollection.userInterfaceStyle == .dark ?
-             UIColor(red: 0.37, green: 0.78, blue: 0.59, alpha: 1.0) :
-             UIColor(red: 0.27, green: 0.68, blue: 0.49, alpha: 1.0)
-         }),
-         Color(uiColor: UIColor { traitCollection in
-             traitCollection.userInterfaceStyle == .dark ?
-             UIColor(red: 0.11, green: 0.12, blue: 0.11, alpha: 1.0) :
-             UIColor(red: 0.96, green: 0.98, blue: 0.96, alpha: 1.0)
-         })),
-        
-        ("Sunset Orange", 
-         Color(uiColor: UIColor { traitCollection in
-             traitCollection.userInterfaceStyle == .dark ?
-             UIColor(red: 1.0, green: 0.50, blue: 0.37, alpha: 1.0) :
-             UIColor(red: 0.95, green: 0.40, blue: 0.27, alpha: 1.0)
-         }),
-         Color(uiColor: UIColor { traitCollection in
-             traitCollection.userInterfaceStyle == .dark ?
-             UIColor(red: 0.12, green: 0.11, blue: 0.10, alpha: 1.0) :
-             UIColor(red: 0.99, green: 0.96, blue: 0.93, alpha: 1.0)
-         })),
-        
-        ("Deep Purple", 
-         Color(uiColor: UIColor { traitCollection in
-             traitCollection.userInterfaceStyle == .dark ?
-             UIColor(red: 0.55, green: 0.41, blue: 0.95, alpha: 1.0) :
-             UIColor(red: 0.45, green: 0.31, blue: 0.85, alpha: 1.0)
-         }),
-         Color(uiColor: UIColor { traitCollection in
-             traitCollection.userInterfaceStyle == .dark ?
-             UIColor(red: 0.11, green: 0.10, blue: 0.12, alpha: 1.0) :
-             UIColor(red: 0.97, green: 0.97, blue: 0.99, alpha: 1.0)
-         })),
-        
-        ("Minimal", 
-         Color(uiColor: UIColor { traitCollection in
-             traitCollection.userInterfaceStyle == .dark ?
-             UIColor(red: 0.73, green: 0.73, blue: 0.73, alpha: 1.0) :
-             UIColor(red: 0.33, green: 0.33, blue: 0.33, alpha: 1.0)
-         }),
-         Color(uiColor: UIColor { traitCollection in
-             traitCollection.userInterfaceStyle == .dark ?
-             UIColor(red: 0.11, green: 0.11, blue: 0.11, alpha: 1.0) :
-             UIColor(red: 0.97, green: 0.97, blue: 0.97, alpha: 1.0)
-         }))
+        ("Warm Sand", Color("#FCE7C8"), Color.white),
+        ("Sage", Color("#B1C29E"), Color.white),
+        ("Golden", Color("#FADA7A"), Color.white),
+        ("Sunset", Color("#F0A04B"), Color.white)
     ]
     
     private init() {
-        // Default to first theme if no saved preference
         let savedColor = UserDefaults.standard.color(forKey: "primaryColor")
         let savedBackground = UserDefaults.standard.color(forKey: "backgroundColor")
         
@@ -88,7 +31,6 @@ class ThemeManager: ObservableObject {
             self.primaryColor = primary
             self.backgroundColor = background
         } else {
-            // Default to first theme
             self.primaryColor = themes[0].primary
             self.backgroundColor = themes[0].background
         }
@@ -125,33 +67,28 @@ extension UserDefaults {
     }
 }
 
-// Extension to handle dark mode adaptation
 extension Color {
-    func colorSchemeAdjusted() -> Color {
-        return Color(uiColor: UIColor { traitCollection in
-            if traitCollection.userInterfaceStyle == .dark {
-                // Convert to darker variant for dark mode
-                return UIColor(self).adjustBrightness(by: -0.85)
-            } else {
-                return UIColor(self)
-            }
-        })
-    }
-}
-
-// Extension to adjust color brightness
-extension UIColor {
-    func adjustBrightness(by amount: CGFloat) -> UIColor {
-        var hue: CGFloat = 0
-        var saturation: CGFloat = 0
-        var brightness: CGFloat = 0
-        var alpha: CGFloat = 0
-        
-        getHue(&hue, saturation: &saturation, brightness: &brightness, alpha: &alpha)
-        
-        return UIColor(hue: hue,
-                      saturation: saturation,
-                      brightness: max(0, min(brightness + amount, 1.0)),
-                      alpha: alpha)
+    init(_ hex: String) {
+        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var int: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&int)
+        let a, r, g, b: UInt64
+        switch hex.count {
+        case 3: // RGB (12-bit)
+            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
+        case 6: // RGB (24-bit)
+            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
+        case 8: // ARGB (32-bit)
+            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
+        default:
+            (a, r, g, b) = (1, 1, 1, 0)
+        }
+        self.init(
+            .sRGB,
+            red: Double(r) / 255,
+            green: Double(g) / 255,
+            blue:  Double(b) / 255,
+            opacity: Double(a) / 255
+        )
     }
 } 

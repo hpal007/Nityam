@@ -57,11 +57,19 @@ struct HabitView: View {
                             Image(systemName: "flame.fill")
                                 .foregroundColor(.orange)
                         }
-                        
-                        if let percentage = calculateCompletionPercentage() {
-                            Text("\(Int(percentage))%")
+                        Label {
+                            Text("\(habit.bestStreak)")
                                 .font(.system(size: 14, weight: .medium))
+                        } icon: {
+                            Image(systemName: "star.fill")
+                                .foregroundColor(.orange)
                         }
+
+//
+//                        if let percentage = calculateCompletionPercentage() {
+//                            Text("\(Int(percentage))%")
+//                                .font(.system(size: 14, weight: .medium))
+//                        }
                     }
                     .foregroundColor(habitColors.foreground)
                 }
@@ -124,13 +132,13 @@ struct HabitView: View {
             try? modelContext.save()
         }
     }
-    private func calculateCompletionPercentage() -> Double? {
-        let calendar = Calendar.current
-        let thirtyDaysAgo = calendar.date(byAdding: .day, value: -30, to: Date())!
-        
-        let recentCompletions = habit.completionDates.filter { $0 >= thirtyDaysAgo }
-        return Double(recentCompletions.count) / 30.0 * 100
-    }
+//    private func calculateCompletionPercentage() -> Double? {
+//        let calendar = Calendar.current
+//        let thirtyDaysAgo = calendar.date(byAdding: .day, value: -30, to: Date())!
+//        
+//        let recentCompletions = habit.completionDates.filter { $0 >= thirtyDaysAgo }
+//        return Double(recentCompletions.count) / 30.0 * 100
+//    }
 }
 
 // Custom button style for smooth animations
