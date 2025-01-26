@@ -66,12 +66,14 @@ struct StatsView: View {
         }
         .onAppear {
             withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                habit.updateStreaks()
                 updateCachedData()
                 isLoading = false
             }
         }
         .onChange(of: habit.completionDates) { oldValue, newValue in
             withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                habit.updateStreaks()
                 updateCachedData()
             }
         }

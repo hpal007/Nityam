@@ -97,6 +97,15 @@ final class Habit {
     
     // MARK: - Methods
     
+    /// Updates both current and best streaks
+    func updateStreaks() {
+        let newStreak = calculateStreak()
+        currentStreak = newStreak
+        if newStreak > bestStreak {
+            bestStreak = newStreak
+        }
+    }
+    
     /// Checks if the given date is a task day for this habit
     func isTaskDay(for date: Date = Date()) -> Bool {
         let calendar = Calendar.current
@@ -129,48 +138,47 @@ final class Habit {
     /// Calculates the current streak of consecutive task days
     /// Returns: Number of consecutive task days the habit was completed
     func calculateStreak() -> Int {
-        // If no completions, return 0
-        guard !completionDates.isEmpty else { return 0 }
-        
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
         
-        // Sort dates in descending order (most recent first)
+        // Sort dates in descending order (most recent first) and get unique dates
         let sortedDates = completionDates
             .map { calendar.startOfDay(for: $0) }
             .sorted(by: >)
-            .uniqued() // Remove duplicate dates
+            .uniqued()
         
-        // For the streak to be active, the last completion must be on the most recent task day
-        var currentDate = today
-        while !isTaskDay(for: currentDate) {
-            guard let previousDay = calendar.date(byAdding: .day, value: -1, to: currentDate) else { break }
-            currentDate = previousDay
+        guard !sortedDates.isEmpty else { return 0 }
+        
+        // Find the most recent task day (today or earlier)
+        var lastTaskDay = today
+        while !isTaskDay(for: lastTaskDay) {
+            guard let previousDay = calendar.date(byAdding: .day, value: -1, to: lastTaskDay) else { break }
+            lastTaskDay = previousDay
         }
         
-        guard let mostRecent = sortedDates.first,
-              mostRecent >= currentDate else {
+        // If the most recent task day wasn't completed, streak is broken
+        if !sortedDates.contains(where: { calendar.isDate($0, inSameDayAs: lastTaskDay) }) {
             return 0
         }
         
         var streak = 1
-        var dateToCheck = mostRecent
+        var dateToCheck = lastTaskDay
         
-        // Count back through dates, only counting task days
-        while let previousDate = calendar.date(byAdding: .day, value: -1, to: dateToCheck) {
-            // If this is not a task day, skip to next date without breaking streak
-            if !isTaskDay(for: previousDate) {
-                dateToCheck = previousDate
+        // Count backwards through task days
+        while let previousDay = calendar.date(byAdding: .day, value: -1, to: dateToCheck) {
+            // Skip non-task days
+            if !isTaskDay(for: previousDay) {
+                dateToCheck = previousDay
                 continue
             }
             
-            // Check if this task day was completed
-            if sortedDates.contains(previousDate) {
-                streak += 1
-                dateToCheck = previousDate
-            } else {
+            // If this task day wasn't completed, break the streak
+            if !sortedDates.contains(where: { calendar.isDate($0, inSameDayAs: previousDay) }) {
                 break
             }
+            
+            streak += 1
+            dateToCheck = previousDay
         }
         
         return streak
