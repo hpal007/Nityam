@@ -14,7 +14,7 @@ struct CompletionData: Identifiable, Equatable {
 
 struct StatsView: View {
     let habit: Habit
-    @StateObject private var themeManager = ThemeManager.shared
+//    @StateObject private var themeManager = ThemeManager.shared
     @Environment(\.dismiss) private var dismiss
     
     // Cache computed values
@@ -35,21 +35,21 @@ struct StatsView: View {
                     // Last 30 Days Chart
                     CompletionChartView(
                         data: cachedLast30DaysData,
-                        themeColor: themeManager.primaryColor,
+                        themeColor: Color.accentColor ,
                         frequency: habit.frequency
                     )
                     .frame(height: geometry.size.height * 0.4)
                     
                     // Weekly Pattern (show only for daily and weekly habits)
                     if habit.frequency != .custom {
-                        WeeklyPatternView(stats: cachedWeekdayStats, themeColor: themeManager.primaryColor)
+                        WeeklyPatternView(stats: cachedWeekdayStats, themeColor: Color.accentColor )
                     }
                     
                     // Calendar View
                     CalendarView(
                         habit: habit,
                         selectedMonth: $selectedMonth,
-                        themeColor: themeManager.primaryColor
+                        themeColor: Color.accentColor
                     )
                 }
                 .padding(.horizontal)
@@ -61,7 +61,7 @@ struct StatsView: View {
             ToolbarItem(placement: .principal) {
                 Text("\(habit.name) Statistics")
                     .font(.headline)
-                    .foregroundColor(themeManager.primaryColor)
+                    .foregroundColor(Color.accentColor)
             }
         }
         .onAppear {
@@ -328,13 +328,13 @@ struct WeekdayBar: View {
 struct StatBox: View {
     let title: String
     let value: String
-    @StateObject private var themeManager = ThemeManager.shared
+//    @StateObject private var themeManager = ThemeManager.shared
     
     var body: some View {
         VStack(spacing: 4) {
             Text(value)
                 .font(.system(.title2, design: .rounded).weight(.bold))
-                .foregroundColor(themeManager.primaryColor)
+                .foregroundColor(Color.accentColor)
                 .minimumScaleFactor(0.5)
                 .lineLimit(1)
             Text(title)

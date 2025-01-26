@@ -41,18 +41,18 @@ struct HabitConstants {
 // MARK: - Shared Components
 struct IconGridView: View {
     @Binding var selectedIcon: String
-    @StateObject private var themeManager = ThemeManager.shared
+//    @StateObject private var themeManager = ThemeManager.shared
     
     var body: some View {
         LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 6), spacing: 10) {
             ForEach(HabitConstants.icons, id: \.self) { icon in
                 Image(systemName: icon)
                     .font(.system(size: 24))
-                    .foregroundColor(selectedIcon == icon ? themeManager.primaryColor : .primary)
+                    .foregroundColor(selectedIcon == icon ? Color.accentColor  : .primary)
                     .frame(width: 44, height: 44)
                     .background(
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(selectedIcon == icon ? themeManager.primaryColor.opacity(0.2) : Color.clear)
+                            .fill(selectedIcon == icon ? Color.primary.opacity(0.2)  : Color.clear)
                     )
                     .onTapGesture {
                         selectedIcon = icon
@@ -65,7 +65,7 @@ struct IconGridView: View {
 
 struct WeekdaySelector: View {
     @Binding var selectedDays: Set<Habit.Weekday>
-    @StateObject private var themeManager = ThemeManager.shared
+//    @StateObject private var themeManager = ThemeManager.shared
     
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -74,7 +74,7 @@ struct WeekdaySelector: View {
                     DayToggleButton(
                         day: day,
                         isSelected: selectedDays.contains(day),
-                        themeColor: themeManager.primaryColor
+                        themeColor: Color.accentColor 
                     ) {
                         if selectedDays.contains(day) {
                             selectedDays.remove(day)
@@ -121,7 +121,7 @@ struct DurationPicker: View {
 // New supporting views for custom scheduling
 struct DaysOfMonthSelector: View {
     @Binding var selectedDays: Set<Int>
-    @StateObject private var themeManager = ThemeManager.shared
+//    @StateObject private var themeManager = ThemeManager.shared
     
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -138,7 +138,7 @@ struct DaysOfMonthSelector: View {
                             .font(.system(size: 14, weight: .medium))
                             .foregroundColor(selectedDays.contains(day) ? .white : .primary)
                             .frame(width: 36, height: 36)
-                            .background(selectedDays.contains(day) ? themeManager.primaryColor : Color(.systemGray5))
+                            .background(selectedDays.contains(day) ? Color.accentColor  : Color(.systemGray5))
                             .clipShape(Circle())
                     }
                 }

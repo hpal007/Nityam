@@ -14,7 +14,7 @@ struct ContentView: View {
     @State private var showingAddHabit = false
     @State private var showingThemeSettings = false
     @State private var showingStats = false
-    @StateObject private var themeManager = ThemeManager.shared
+//    @StateObject private var themeManager = ThemeManager.shared
     
     // Grid layout
     let columns = [
@@ -27,17 +27,30 @@ struct ContentView: View {
             ScrollView {
                 VStack(spacing: 20) {
                     // Header
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Habits")
-                            .font(.system(size: 34, weight: .bold))
-                            .foregroundColor(.primary)
-                        Text("Track your daily progress")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
+                    HStack{
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Habits")
+                                .font(.system(size: 34, weight: .bold))
+                                .foregroundColor(.primary)
+                            Text("Track your daily progress")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal)
+                        
+                        NavigationLink(destination: AddHabitView()) {
+                                Image(systemName: "plus.circle.fill")
+                                    .font(.system(size: 30, weight: .medium))
+                                    .foregroundColor(Color.primary)
+                                    .frame(width: 44, height: 44)
+                                    .contentShape(Rectangle())
+                        }.padding(.bottom)
+                        
+                        
+                        
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal)
-                    
+
                     // Stats Overview
                     StatsOverview(habits: habits)
                         .padding(.horizontal)
@@ -54,43 +67,46 @@ struct ContentView: View {
             }
             .background(Color(.systemGroupedBackground))
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Menu {
-                        ForEach(themeManager.themes, id: \.name) { theme in
-                            Button(action: {
-                                withAnimation(.spring(response: 0.3)) {
-                                    themeManager.applyTheme(primary: theme.primary, background: theme.background)
-                                }
-                            }) {
-                                HStack {
-                                    Circle()
-                                        .fill(theme.primary)
-                                        .frame(width: 20, height: 20)
-                                    Text(theme.name)
-                                    if theme.primary == themeManager.primaryColor {
-                                        Image(systemName: "checkmark")
-                                    }
-                                }
-                            }
-                        }
-                    } label: {
-                        Image(systemName: "paintpalette.fill")
-                            .font(.system(size: 20, weight: .medium))
-                            .foregroundColor(themeManager.primaryColor)
-                            .frame(width: 44, height: 44)
-                            .contentShape(Rectangle())
-                    }
-                }
+//                ToolbarItem(placement: .topBarTrailing) {
+//                    Menu {
+//                        ForEach(themeManager.themes, id: \.name) { theme in
+//                            Button(action: {
+//                                withAnimation(.spring(response: 0.3)) {
+//                                    themeManager.applyTheme(primary: theme.primary, background: theme.background)
+//                                }
+//                            }) {
+//                                HStack {
+//                                    Circle()
+//                                        .fill(theme.primary)
+//                                        .frame(width: 20, height: 20)
+//                                    Text(theme.name)
+//                                    if theme.primary == themeManager.primaryColor {
+//                                        Image(systemName: "checkmark")
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    } label: {
+//                        Image(systemName: "paintpalette.fill")
+//                            .font(.system(size: 20, weight: .medium))
+//                            .foregroundColor(themeManager.primaryColor)
+//                            .frame(width: 44, height: 44)
+//                            .contentShape(Rectangle())
+//                    }
+//                }
+//                ToolbarItem(placement: .topBarLeading) {
+//                    Text("Hello, Harish").font(.largeTitle)
+//                }
                 
-                ToolbarItem(placement: .topBarLeading) {
-                    NavigationLink(destination: AddHabitView()) {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.system(size: 20, weight: .medium))
-                            .foregroundColor(themeManager.primaryColor)
-                            .frame(width: 44, height: 44)
-                            .contentShape(Rectangle())
-                    }
-                }
+//                ToolbarItem(placement: .topBarTrailing) {
+//                    NavigationLink(destination: AddHabitView()) {
+//                        Image(systemName: "plus.circle.fill")
+//                            .font(.system(size: 20, weight: .medium))
+//                            .foregroundColor(Color.primary)
+//                            .frame(width: 44, height: 44)
+//                            .contentShape(Rectangle())
+//                    }
+//                }
             }
         }
     }

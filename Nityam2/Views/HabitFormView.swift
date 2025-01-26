@@ -3,8 +3,8 @@ import SwiftUI
 struct HabitFormView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var themeManager = ThemeManager.shared
-    
+//    @StateObject private var themeManager = ThemeManager.shared
+//    
     // Mode of operation
     private let isEditing: Bool
     private let existingHabit: Habit?

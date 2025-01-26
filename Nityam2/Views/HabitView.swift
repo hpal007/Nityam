@@ -8,7 +8,7 @@ struct HabitView: View {
     let habit: Habit
     // Access to SwiftData storage
     @Environment(\.modelContext) private var modelContext
-    @StateObject private var themeManager = ThemeManager.shared
+//    @StateObject private var themeManager = ThemeManager.shared
     @State private var showingDeleteAlert = false
     
     // MARK: - View Body
@@ -21,12 +21,12 @@ struct HabitView: View {
         
         if habit.type == .positive {
             return habit.isCompleted ? 
-                (themeManager.primaryColor, .white) : 
-                (Color(.secondarySystemGroupedBackground), themeManager.primaryColor)
+                (Color.accentColor, .white) : 
+                (Color(.secondarySystemGroupedBackground), Color.accentColor )
         } else {
             // Negative habits: theme color when completed (good), red when not (bad)
             return habit.isCompleted ? 
-                (themeManager.primaryColor, .white) : 
+                (Color.accentColor, .white) : 
                 (Color(.secondarySystemGroupedBackground), .red)
         }
     }

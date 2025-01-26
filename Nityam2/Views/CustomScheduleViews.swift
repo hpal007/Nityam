@@ -2,7 +2,7 @@ import SwiftUI
 
 struct MonthDaySelector: View {
     @Binding var selectedDays: Set<Int>
-    @StateObject private var themeManager = ThemeManager.shared
+//    @StateObject private var themeManager = ThemeManager.shared
     
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -19,7 +19,7 @@ struct MonthDaySelector: View {
                             .font(.system(size: 14, weight: .medium))
                             .foregroundColor(selectedDays.contains(day) ? .white : .primary)
                             .frame(width: 36, height: 36)
-                            .background(selectedDays.contains(day) ? themeManager.primaryColor : Color(.systemGray5))
+                            .background(selectedDays.contains(day) ? Color.accentColor  : Color(.systemGray5))
                             .clipShape(Circle())
                     }
                 }
@@ -45,7 +45,7 @@ struct WeekOrdinalPicker: View {
 
 struct DatesInYearSelector: View {
     @Binding var selectedDates: Set<Int>
-    @StateObject private var themeManager = ThemeManager.shared
+//    @StateObject private var themeManager = ThemeManager.shared
     let calendar = Calendar.current
     
     var body: some View {
@@ -68,7 +68,7 @@ struct DatesInYearSelector: View {
                                     .font(.system(size: 14, weight: .medium))
                                     .foregroundColor(selectedDates.contains(dateValue) ? .white : .primary)
                                     .frame(width: 32, height: 32)
-                                    .background(selectedDates.contains(dateValue) ? themeManager.primaryColor : Color(.systemGray5))
+                                    .background(selectedDates.contains(dateValue) ? Color.accentColor : Color(.systemGray5))
                                     .clipShape(Circle())
                             }
                         }

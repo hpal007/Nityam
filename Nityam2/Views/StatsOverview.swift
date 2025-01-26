@@ -3,7 +3,7 @@ import SwiftData
 
 struct StatsOverview: View {
     let habits: [Habit]
-    @StateObject private var themeManager = ThemeManager.shared
+//    @StateObject private var themeManager = ThemeManager.shared
     
     var body: some View {
         VStack(spacing: 16) {
@@ -21,7 +21,7 @@ struct StatsOverview: View {
                         .frame(height: 8)
                     
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(themeManager.primaryColor)
+                        .fill(Color.accentColor )
                         .frame(width: geometry.size.width * CGFloat(completionRate),
                                height: 8)
                 }
@@ -54,14 +54,14 @@ struct StatsOverview: View {
 struct StatItem: View {
     let title: String
     let value: String
-    @StateObject private var themeManager = ThemeManager.shared
+//    @StateObject private var themeManager = ThemeManager.shared
     
     var body: some View {
         VStack(spacing: 4) {
             Text(value)
                 .font(.title2)
                 .fontWeight(.bold)
-                .foregroundColor(themeManager.primaryColor)
+                .foregroundColor(Color.primary)
             Text(title)
                 .font(.caption)
                 .foregroundColor(Color(.secondaryLabel))

@@ -11,6 +11,7 @@ final class Habit {
     var iconName: String            // SF Symbol name for visual representation
     var targetDuration: TimeInterval // Optional duration in minutes for timed habits
     var isCompleted: Bool           // Tracks today's completion status
+    var lastResetDate: Date?        // Tracks when the habit was last reset
     
     // MARK: - Progress Tracking
     @Attribute(.externalStorage)    // Stores large arrays externally for better performance
@@ -86,6 +87,7 @@ final class Habit {
         self.iconName = iconName
         self.targetDuration = targetDuration
         self.isCompleted = false
+        self.lastResetDate = Calendar.current.startOfDay(for: Date())
         self.completionDates = []
         self.currentStreak = 0
         self.bestStreak = 0
@@ -149,39 +151,87 @@ final class Habit {
         
         guard !sortedDates.isEmpty else { return 0 }
         
-        // Find the most recent task day (today or earlier)
-        var lastTaskDay = today
-        while !isTaskDay(for: lastTaskDay) {
-            guard let previousDay = calendar.date(byAdding: .day, value: -1, to: lastTaskDay) else { break }
-            lastTaskDay = previousDay
+        // If today is a task day and it's completed, start counting from today
+        // Otherwise, start from the most recent completion date
+        var startDate = today
+        if !isTaskDay(for: today) || !isCompleted {
+            guard let lastCompletion = sortedDates.first else { return 0 }
+            startDate = lastCompletion
         }
         
-        // If the most recent task day wasn't completed, streak is broken
-        if !sortedDates.contains(where: { calendar.isDate($0, inSameDayAs: lastTaskDay) }) {
-            return 0
-        }
+        var streak = isTaskDay(for: startDate) && 
+            (calendar.isDate(startDate, inSameDayAs: today) ? isCompleted : 
+                sortedDates.contains(where: { calendar.isDate($0, inSameDayAs: startDate) })) ? 1 : 0
         
-        var streak = 1
-        var dateToCheck = lastTaskDay
+        var currentDate = startDate
         
-        // Count backwards through task days
-        while let previousDay = calendar.date(byAdding: .day, value: -1, to: dateToCheck) {
-            // Skip non-task days
-            if !isTaskDay(for: previousDay) {
-                dateToCheck = previousDay
+        // Count backwards through dates
+        while true {
+            // Move to previous day
+            guard let previousDay = calendar.date(byAdding: .day, value: -1, to: currentDate) else { break }
+            currentDate = previousDay
+            
+            // If it's not a task day, continue to the next day without breaking the streak
+            if !isTaskDay(for: currentDate) {
                 continue
             }
             
-            // If this task day wasn't completed, break the streak
-            if !sortedDates.contains(where: { calendar.isDate($0, inSameDayAs: previousDay) }) {
+            // Check if this task day was completed
+            if sortedDates.contains(where: { calendar.isDate($0, inSameDayAs: currentDate) }) {
+                streak += 1
+            } else {
+                // Streak is broken if a task day was missed
                 break
             }
-            
-            streak += 1
-            dateToCheck = previousDay
         }
         
         return streak
+    }
+    
+    /// Checks and resets the completion status if it's a new day
+    func checkAndResetForNewDay() {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        
+        // If we haven't reset today
+        if let lastReset = lastResetDate,
+           !calendar.isDate(lastReset, inSameDayAs: today) {
+            // Reset completion status
+            isCompleted = false
+            // Update the last reset date
+            lastResetDate = today
+            // Update streaks
+            updateStreaks()
+        } else if lastResetDate == nil {
+            // Initialize lastResetDate if it's nil
+            lastResetDate = today
+        }
+    }
+    
+    /// Updates completion status and streaks
+    func toggleCompletion() {
+        // Check and reset for new day before toggling
+        checkAndResetForNewDay()
+        
+        isCompleted = !isCompleted
+        
+        let today = Calendar.current.startOfDay(for: Date())
+        
+        if isCompleted {
+            // Add completion date if not already present
+            if !completionDates.contains(where: { Calendar.current.isDate($0, inSameDayAs: today) }) {
+                completionDates.append(today)
+                lastCompletedDate = today
+            }
+        } else {
+            // Remove today's completion date
+            completionDates.removeAll(where: { Calendar.current.isDate($0, inSameDayAs: today) })
+            // Update lastCompletedDate to the most recent completion
+            lastCompletedDate = completionDates.sorted(by: >).first
+        }
+        
+        // Update streaks after modifying completion status
+        updateStreaks()
     }
 }
 
